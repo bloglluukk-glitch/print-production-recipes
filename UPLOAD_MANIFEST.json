@@ -1,0 +1,163 @@
+{
+  "version": "0.1.0",
+  "date": "2026-10-07",
+  "public_files_including_manifest": 32,
+  "manifest_integrity": "Lists the other 31 files; Git and release ZIP cover all 32 including this manifest.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 81,
+      "sha256": "946888367bb668685a1ae6847e367f81fa47133ae711fea533600e2a38d1a382"
+    },
+    {
+      "path": "CONTRIBUTING.en.md",
+      "bytes": 538,
+      "sha256": "4d29219028bf8b105d5603ad9cbff4e2659cdb2f29679c8d845ee73229034745"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 612,
+      "sha256": "592d9434e3786d9aad42d705c4b72e929d37209d26e12ed27c107aa529dc65f5"
+    },
+    {
+      "path": "docs/QUICK_START.en.md",
+      "bytes": 2013,
+      "sha256": "c762034065298a56d81ab13a8b7e5a17b301cae7b6adf230d1ff1025986e0daa"
+    },
+    {
+      "path": "docs/QUICK_START.md",
+      "bytes": 2453,
+      "sha256": "ffd2a2a25cb99c63f32202e18a0da1b70ccc59b149892a065aec21f8e2b69d30"
+    },
+    {
+      "path": "docs/RELEASE_REPORT.en.md",
+      "bytes": 5103,
+      "sha256": "4b6c3219677093b5de45cbe060da00d249339a7ec77c13c5990f0ab922d9e840"
+    },
+    {
+      "path": "docs/RELEASE_REPORT.md",
+      "bytes": 5815,
+      "sha256": "4a114de81d7b3a7aa62f6474079be9f820528503c62c24490a15367f29de34f3"
+    },
+    {
+      "path": "docs/VALIDATION.json",
+      "bytes": 2104,
+      "sha256": "d735a889e01f2f0c6ab9c0f2a5da40ca1b4b524b96505f699aea7c930338e9bc"
+    },
+    {
+      "path": "examples/dummy-contact-sheet.png",
+      "bytes": 71865,
+      "sha256": "19c596d32e81594cb9fbedc92c888d7bfc00022d6ce4eefc369babdcd59b883f"
+    },
+    {
+      "path": "examples/dummy-master.pdf",
+      "bytes": 58437,
+      "sha256": "ec0f569b94bb82be311e160fd3ae7784edbfc8d4e896d195f020fa6a0a220c85"
+    },
+    {
+      "path": "examples/dummy-spec.json",
+      "bytes": 346,
+      "sha256": "073ffc04f03d139f86ccdbfa380761cc256cc5205d6711fe34aad2523e70a18a"
+    },
+    {
+      "path": "examples/leaflets-01-05.pdf",
+      "bytes": 18207,
+      "sha256": "cf3497c2153b24f0bdf139ef3f451d02f7e0dfb73ccf1d15cad0d7ab154b89cb"
+    },
+    {
+      "path": "examples/leaflets-06-10.pdf",
+      "bytes": 18388,
+      "sha256": "bc03fb2ba06dba24600ae3014f930e8735f023a7f3a0578cb535d959ad06dae1"
+    },
+    {
+      "path": "examples/leaflets-11-15.pdf",
+      "bytes": 18195,
+      "sha256": "37c1695b89b11a49b15294afa2a33e7442ab37afbef9a0ed3ebeaf060464d21d"
+    },
+    {
+      "path": "examples/leaflets-16-20.pdf",
+      "bytes": 18391,
+      "sha256": "9f8daace9e7ccc5f09a5a157c5fba9a0805c48ccc67c9835c9d0af1ea2ac317a"
+    },
+    {
+      "path": "examples/pair-map.csv",
+      "bytes": 793,
+      "sha256": "bd4d920c6d2f89d10820a0590bd4aebe28d0c774877ad7a9120556075f1e0019"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1074,
+      "sha256": "fa77d04e171f69440aa2d7332359437a8691760c7479bc0d967ca24ea1cdcf83"
+    },
+    {
+      "path": "README.en.md",
+      "bytes": 4216,
+      "sha256": "d5483ca16d023669064c39e90e0ad3e44e518a3d0e48b809a18950ade2281d6a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4943,
+      "sha256": "68f945885af1245f9cf67859fec501f2fac4ab4f8caa569dd2d08a12986a051d"
+    },
+    {
+      "path": "recipes/01_REDUCE_AI.en.md",
+      "bytes": 2841,
+      "sha256": "091ac0fed479b728d156b6c6aeeb3ae5463ee2aeb1e9fd3af0d5065f3cf140b3"
+    },
+    {
+      "path": "recipes/01_REDUCE_AI.md",
+      "bytes": 3439,
+      "sha256": "5d0fd5c295c6be1a517d9c091d5cabdad915d347dd619237dc5fdd142d691c5d"
+    },
+    {
+      "path": "recipes/02_SPLIT_LEAFLETS.en.md",
+      "bytes": 2354,
+      "sha256": "e4d2d4c0a44bcc04f900eac002c3a5c93953d035c79facdf6b743604edf0ced2"
+    },
+    {
+      "path": "recipes/02_SPLIT_LEAFLETS.md",
+      "bytes": 2824,
+      "sha256": "60ebc97eabd3fe073590785e1b0b0617d45faebedc77836b3542a15eab3a71a3"
+    },
+    {
+      "path": "recipes/03_PREFLIGHT.en.md",
+      "bytes": 1843,
+      "sha256": "f9aec0387960acbcc2799eaabc9e43b0814ae28518d5e81cbd5a255612338899"
+    },
+    {
+      "path": "recipes/03_PREFLIGHT.md",
+      "bytes": 2029,
+      "sha256": "34ff3960b7c4bea5fadd72a539f3070512713680858e234bbd51cbaa1d3e2d68"
+    },
+    {
+      "path": "scripts/lib/print_core.jsxinc",
+      "bytes": 11792,
+      "sha256": "aa8b7c5b3472384a298d7047d8a9d7c2cb2741009c37b5953fee6f03dcd8f011"
+    },
+    {
+      "path": "scripts/Print_Recipes.jsx",
+      "bytes": 4509,
+      "sha256": "6ea08b03047e0f2bd5f4d2360235b2540a70000752a533bdf03aa1721480a46b"
+    },
+    {
+      "path": "SOURCES.en.md",
+      "bytes": 1634,
+      "sha256": "3f27db423544adee33724011a7180a696fa7b60967e2acb2accfc1b4045ff260"
+    },
+    {
+      "path": "SOURCES.md",
+      "bytes": 1778,
+      "sha256": "7555f934695ca04e42e55beaa3971bd3442da618ceefe3d0082ba9b17baa64df"
+    },
+    {
+      "path": "START_HERE.html",
+      "bytes": 6630,
+      "sha256": "0cded7e25a43407fda9c9b48d1ccd942651918142933a6369e95b522e4b1f130"
+    },
+    {
+      "path": "tests/validate_core.cjs",
+      "bytes": 3284,
+      "sha256": "483bfc0df7963dc55a33cd26deb95108a3df11bcfd7cd7ba7f524e01336adb62"
+    }
+  ]
+}

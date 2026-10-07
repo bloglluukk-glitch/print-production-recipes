@@ -1,0 +1,67 @@
+{
+  "version": "0.1.0",
+  "date": "2026-10-07",
+  "status": "pass",
+  "tested_host": {
+    "illustrator": "30.5.1",
+    "os": "Windows"
+  },
+  "planning_tests": {
+    "run": 20,
+    "passed": 20,
+    "failed": 0
+  },
+  "adobe_execution": {
+    "variants": 20,
+    "source_artboards": 40,
+    "compact_reopened_artboards": 40,
+    "native_batches": 4,
+    "native_artboards_per_batch": 10,
+    "native_groups_per_batch": 10,
+    "pdf_batches": 4,
+    "pdf_pages_per_batch": 10,
+    "total_render_comparisons": 120,
+    "render_scale": 1,
+    "mean_channel_difference_tolerance": 0.01,
+    "largest_mean_channel_difference": 0.0,
+    "physical_bleed_corner_checks": 160,
+    "source_snapshot_hashes_match": 3
+  },
+  "dummy_compaction": {
+    "source_bytes": 1348935,
+    "compact_bytes": 1308995,
+    "reduction_percent": 2.96,
+    "conditions": "same synthetic source; compression on both; PDF compatibility on source and off compact copy; no rasterization"
+  },
+  "review_pdf": {
+    "trim_artboard_mm": [
+      148,
+      210
+    ],
+    "canvas_mm": [
+      154,
+      216
+    ],
+    "bleed_mm": 3,
+    "separate_trim_size_TrimBox": false,
+    "press_profile_selected": false,
+    "print_certified": false
+  },
+  "ui_validation": {
+    "status": "pass",
+    "korean_dialog_layout": true,
+    "english_dialog_layout": true,
+    "actions": 4,
+    "interactive_click_test": false
+  },
+  "large_customer_file_rerun": false,
+  "selective_JPEG_conversion_tested": false,
+  "physical_press_proofs": 0,
+  "published_native_AI_binaries": 0,
+  "notes": [
+    "Illustrator ignored bleedOffsetRect in the tested host; review PDFs export expanded copy artboards explicitly.",
+    "PDF page includes physical bleed but no separate trim-size TrimBox; make final press PDF using printer settings.",
+    "UI elements and both language layouts were checked in Illustrator without showing a modal window; human interactive clicks were not tested.",
+    "Historical 1.93GB to 184MB observation is distinct from this small synthetic compaction test."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "self_authored": true,
+  "variants": 20,
+  "sides": 40,
+  "trim_mm": [
+    148,
+    210
+  ],
+  "bleed_mm": 3,
+  "color_mode": "CMYK",
+  "batch_variants": 5,
+  "source_asset_files": 0,
+  "source_font_files": 0,
+  "print_certified": false,
+  "native_ai_source": "Generated locally by the Create demo action; native binaries are not bundled."
+}

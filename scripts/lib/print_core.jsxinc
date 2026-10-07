@@ -1,0 +1,163 @@
+/* MIT License. Copyright 2026 bloglluukk-glitch. Adobe ExtendScript, ES3. */
+var PrintRecipes = (function () {
+    var MM = 72 / 25.4;
+    function fail(message) { throw new Error(message); }
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+    function write(file, text) {
+        if (file.exists) fail('Output already exists / 결과 파일이 이미 있습니다.');
+        file.encoding = 'UTF-8';
+        if (!file.open('w')) fail('Cannot write output / 결과를 저장할 수 없습니다.');
+        file.write(text); file.close();
+    }
+    function color(c, m, y, k) {
+        var q = new CMYKColor(); q.cyan=c; q.magenta=m; q.yellow=y; q.black=k; return q;
+    }
+    function aiOptions(compatible) {
+        var o=new IllustratorSaveOptions(); o.compressed=true;
+        o.pdfCompatible=compatible; o.embedICCProfile=true; return o;
+    }
+    function requireSaved(doc) {
+        if (!doc || !doc.saved) fail('Save the source first / 원본 변경을 먼저 저장하세요.');
+        var f;
+        try { f=doc.fullName; } catch (e) { fail('Save an AI source first / 먼저 AI 원본을 저장하세요.'); }
+        if (!/\.ai$/i.test(f.name) || !f.exists) fail('A saved AI source is required / 저장된 AI 원본이 필요합니다.');
+        if (doc.placedItems.length) fail('Linked assets are outside this tool scope; package first / 연결 자산은 먼저 패키지로 보존하세요. 이 도구는 내장 자산만 지원합니다.');
+        return f;
+    }
+    function jobFolder(parent) {
+        var stamp=(new Date()).getTime(), f=new Folder(parent.fsName+'/print-job-'+stamp);
+        while (f.exists) { stamp++; f=new Folder(parent.fsName+'/print-job-'+stamp); }
+        if (!f.create()) fail('Cannot create job folder / 작업 폴더를 만들 수 없습니다.');
+        return f;
+    }
+    function snapshot(source, folder) {
+        var f=new File(folder.fsName+'/source-snapshot.ai');
+        if (f.exists || !source.copy(f.fsName)) fail('Snapshot copy failed / 원본 사본을 만들지 못했습니다.');
+        return f;
+    }
+    function withCopy(source, fn) {
+        var d=null, previous=app.documents.length ? app.activeDocument : null;
+        try { d=app.open(source); return fn(d); }
+        finally { if(d) d.close(SaveOptions.DONOTSAVECHANGES); if(previous) app.activeDocument=previous; }
+    }
+    function exportProof(doc, file, range, bleedMM) {
+        if(file.exists) fail('Output already exists / 결과 파일이 이미 있습니다.');
+        var o=new PDFSaveOptions(); o.preserveEditability=false; o.acrobatLayers=false;
+        o.artboardRange=range || ''; o.trimMarks=false; o.pageInformation=false;
+        o.registrationMarks=false; o.colorBars=false; o.compressArt=true;
+        // Export actual outer artwork explicitly: the tested host ignored PDF bleed offsets.
+        // These are full-bleed review canvases, without a separate trim-size PDF TrimBox.
+        o.bleedLink=false; o.bleedOffsetRect=[0,0,0,0];
+        var b=bleedMM*MM, original=[], i;
+        try {
+            for(i=0;i<doc.artboards.length;i++) {
+                var r=doc.artboards[i].artboardRect; original.push(r.slice(0));
+                doc.artboards[i].artboardRect=[r[0]-b,r[1]+b,r[2]+b,r[3]-b];
+            }
+            doc.saveAs(file,o);
+        } finally {for(i=0;i<original.length;i++)doc.artboards[i].artboardRect=original[i];}
+    }
+    function plan(doc, perBatch, bleedMM, nativeAI) {
+        var count=doc.artboards.length, names=[], i, r, b=bleedMM*MM;
+        if (count<2 || count%2) fail('An even number of artboards is required / 앞뒤 면으로 짝수 아트보드가 필요합니다.');
+        if(perBatch<1 || perBatch%1 || !isFinite(perBatch)) fail('Invalid batch size / 묶음 크기는 양의 정수여야 합니다.');
+        if(bleedMM<0 || bleedMM>25.4 || !isFinite(bleedMM)) fail('Invalid bleed / 도련은 0~25.4mm여야 합니다.');
+        for(i=0;i<count;i++) {
+            var expected='LF-'+pad(Math.floor(i/2)+1)+'-'+(i%2 ? 'BACK' : 'FRONT');
+            if(doc.artboards[i].name!==expected) fail('Name/order mismatch at artboard '+(i+1)+'; expected '+expected+' / 아트보드 이름과 앞뒤 순서를 확인하세요.');
+            names.push(expected);
+        }
+        for(i=0;i<count;i++)for(var other=i+1;other<count;other++) {
+            var a=doc.artboards[i].artboardRect,c=doc.artboards[other].artboardRect;
+            if(a[2]+b>c[0]-b && a[0]-b<c[2]+b && a[1]+b>c[3]-b && a[3]-b<c[1]+b)
+                fail('Bleed review canvases overlap another side / 지정 도련의 출력 범위가 다른 면과 겹칩니다. 아트보드 간격을 먼저 확인하세요.');
+        }
+        if(nativeAI) {
+            if(doc.layers.length!==1 || doc.layers[0].name!=='ARTWORK') fail('Native split needs one ARTWORK layer / AI 분리는 ARTWORK 레이어 한 개가 필요합니다.');
+            var layer=doc.layers[0];
+            if(layer.locked || !layer.visible || !layer.printable) fail('ARTWORK must be visible, printable and unlocked / ARTWORK 레이어 상태를 확인하세요.');
+            var roots=[], seen={};
+            for(i=0;i<layer.pageItems.length;i++) if(layer.pageItems[i].parent===layer) roots.push(layer.pageItems[i]);
+            if(roots.length!==count) fail('One independent group per artboard is required / 아트보드별 독립 그룹이 하나씩 필요합니다.');
+            for(i=0;i<roots.length;i++) {
+                var item=roots[i], idx=-1;
+                for(var j=0;j<names.length;j++) if(item.name===names[j]) idx=j;
+                if(item.typename!=='GroupItem' || idx<0 || seen[item.name] || item.hidden || item.locked) fail('Invalid artwork grouping / 독립 그룹의 이름·개수·상태를 확인하세요.');
+                seen[item.name]=true; r=doc.artboards[idx].artboardRect; var g=item.visibleBounds, tol=0.1;
+                if(g[0]<r[0]-b-tol || g[1]>r[1]+b+tol || g[2]>r[2]+b+tol || g[3]<r[3]-b-tol) fail('Artwork extends past its own bleed boundary / 다른 면과 공유되거나 지정 도련 밖으로 넘어가는 그룹입니다.');
+            }
+        }
+        var batches=[];
+        for(i=0;i<count/2;i+=perBatch) {
+            var last=Math.min(count/2,i+perBatch);
+            batches.push({firstPair:i+1,lastPair:last,firstBoard:i*2,lastBoard:last*2-1,
+                          range:(i*2+1)+'-'+(last*2),stem:'leaflets-'+pad(i+1)+'-'+pad(last)});
+        }
+        return {names:names,batches:batches,artboards:count,pairs:count/2};
+    }
+    function compact(doc, parent) {
+        var source=requireSaved(doc), folder=jobFolder(parent), snap=snapshot(source,folder);
+        var out=new File(folder.fsName+'/compact-editable.ai');
+        withCopy(snap,function(d){ d.saveAs(out,aiOptions(false)); });
+        write(new File(folder.fsName+'/REPORT.txt'),
+            'Original preserved; source-snapshot.ai is a byte copy.\nCompact AI: compression on, PDF compatibility off.\nNo artwork rasterization, downsampling, or color conversion performed.\nReopen the AI in Illustrator; review output separately.\n');
+        return folder;
+    }
+    function split(doc,parent,perBatch,bleedMM,nativeAI) {
+        var source=requireSaved(doc), p=plan(doc,perBatch,bleedMM,nativeAI);
+        var folder=jobFolder(parent), snap=snapshot(source,folder), rows=['pair_id,front_source_artboard,back_source_artboard,output_file,front_output_page,back_output_page'];
+        for(var n=0;n<p.batches.length;n++) {
+            var batch=p.batches[n];
+            withCopy(snap,function(d){
+                if(nativeAI) {
+                    var roots=[], layer=d.layers[0];
+                    for(var k=0;k<layer.pageItems.length;k++) if(layer.pageItems[k].parent===layer) roots.push(layer.pageItems[k]);
+                    for(k=roots.length-1;k>=0;k--) {
+                        var keep=false;
+                        for(var j=batch.firstBoard;j<=batch.lastBoard;j++) if(roots[k].name===p.names[j]) keep=true;
+                        if(!keep) roots[k].remove();
+                    }
+                    for(k=d.artboards.length-1;k>=0;k--) if(k<batch.firstBoard || k>batch.lastBoard) d.artboards[k].remove();
+                    if(d.artboards.length!==batch.lastBoard-batch.firstBoard+1) fail('Split count mismatch / 분리 면 수가 일치하지 않습니다.');
+                    for(k=0;k<d.artboards.length;k++) if(d.artboards[k].name!==p.names[batch.firstBoard+k]) fail('Split order mismatch / 분리 순서가 일치하지 않습니다.');
+                    d.saveAs(new File(folder.fsName+'/'+batch.stem+'.ai'),aiOptions(false));
+                    exportProof(d,new File(folder.fsName+'/'+batch.stem+'.pdf'),'',bleedMM);
+                } else exportProof(d,new File(folder.fsName+'/'+batch.stem+'.pdf'),batch.range,bleedMM);
+            });
+            for(var id=batch.firstPair;id<=batch.lastPair;id++) {
+                var front=(id-batch.firstPair)*2+1;
+                rows.push('LF-'+pad(id)+','+(id*2-1)+','+(id*2)+','+batch.stem+'.pdf,'+front+','+(front+1));
+            }
+        }
+        write(new File(folder.fsName+'/pair-map.csv'),rows.join('\n')+'\n');
+        write(new File(folder.fsName+'/REPORT.txt'),'Pairs: '+p.pairs+'\nArtboards: '+p.artboards+'\nBatches: '+p.batches.length+'\nBleed mm: '+bleedMM+'\nOriginal and snapshot preserved.\nPDF review canvas includes bleed on all sides, without a separate trim-size TrimBox.\nNo press profile/preset, marks, or duplex imposition chosen.\nInspect physical bleed, color, fonts and front/back orientation before press delivery.\n');
+        return folder;
+    }
+    function makeDemo(file) {
+        if(file.exists) fail('Output already exists / 결과 파일이 이미 있습니다.');
+        var d=null, previous=app.documents.length?app.activeDocument:null;
+        try {
+            var w=148*MM,h=210*MM,b=3*MM,gap=20*MM;
+            d=app.documents.add(DocumentColorSpace.CMYK,w,h); d.layers[0].name='ARTWORK';
+            for(var i=0;i<40;i++) {
+                var x=(i%5)*(w+gap), y=-Math.floor(i/5)*(h+gap), rect=[x,y,x+w,y-h];
+                if(i===0)d.artboards[0].artboardRect=rect;else d.artboards.add(rect);
+                var name='LF-'+pad(Math.floor(i/2)+1)+'-'+(i%2?'BACK':'FRONT'); d.artboards[i].name=name;
+                var group=d.layers[0].groupItems.add(); group.name=name;
+                var bg=group.pathItems.rectangle(y+b,x-b,w+2*b,h+2*b); bg.stroked=false; bg.filled=true;
+                bg.fillColor=color(i%2?8:75,i%2?4:10, i%2?0:18,0);
+                var title=group.textFrames.add(); title.contents=name;
+                title.position=[x+14*MM,y-25*MM]; title.textRange.characterAttributes.size=28;
+                title.textRange.characterAttributes.fillColor=color(0,0,0,95);
+                var note=group.textFrames.add(); note.contents='SELF-AUTHORED PRINT DEMO\r148 x 210 mm / 3 mm bleed\rTOP -> / NOT A PRESS PROOF';
+                note.position=[x+14*MM,y-43*MM]; note.textRange.characterAttributes.size=10;
+                note.textRange.characterAttributes.fillColor=color(0,0,0,95);
+                var bar=group.pathItems.rectangle(y-85*MM,x+14*MM,120*MM,6*MM); bar.filled=true; bar.stroked=false;bar.fillColor=color(0,0,0,90);
+                for(var j=0;j<8;j++){var c=group.pathItems.ellipse(y-105*MM-j*7*MM,x+14*MM+j*10*MM,11*MM,11*MM);c.filled=true;c.stroked=false;c.fillColor=color(10+j*8,12+j*5,25+j*4,0);}
+            }
+            d.selection=null; d.artboards.setActiveArtboardIndex(0);
+            d.saveAs(file,aiOptions(true)); return d;
+        } catch(e){if(d)d.close(SaveOptions.DONOTSAVECHANGES);if(previous)app.activeDocument=previous;throw e;}
+    }
+    return {plan:plan,compact:compact,split:split,makeDemo:makeDemo,exportProof:exportProof};
+})();
